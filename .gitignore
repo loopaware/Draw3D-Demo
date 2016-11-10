@@ -1,0 +1,15 @@
+# General Folders
+external
+
+# Settings
+# ...ini files
+
+# Eclipse Files
+#.settings
+#.project
+#.cproject
+
+# Compiler Files
+
+# Debug files
+Debug
