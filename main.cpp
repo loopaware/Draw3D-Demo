@@ -236,6 +236,8 @@ GLuint texDiffuse;
 GLuint fbo_id;
 GLuint fbo_tex;
 
+GLuint pbo_id;
+
 mat4 modelMatrix;
 mat4 viewMatrix;
 mat4 projectionMatrix;
@@ -251,6 +253,7 @@ bool init();
 		void readMeshFile();
 	void importTexture();
 	void prepareFBO();
+	void preparePBO();
 bool appLoop();
 	void update(bool &loop);
 		void handleEvents(bool& loop);
@@ -679,6 +682,28 @@ void prepareFBO()
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+void preparePBO()
+{
+	glGenBuffers(1, &pbo_id);
+
+}
+
+void bunchOfCode()
+{
+	/*
+	// create 2 pixel buffer objects, you need to delete them when program exits.
+	        // glBufferDataARB with NULL pointer reserves only memory space.
+	        glGenBuffersARB(PBO_COUNT, pboIds);
+	        glBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, pboIds[0]);
+	        glBufferDataARB(GL_PIXEL_PACK_BUFFER_ARB, DATA_SIZE, 0, GL_STREAM_READ_ARB);
+	        glBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, pboIds[1]);
+	        glBufferDataARB(GL_PIXEL_PACK_BUFFER_ARB, DATA_SIZE, 0, GL_STREAM_READ_ARB);
+
+	        glBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, 0);
+
+*/
+}
+
 bool appLoop()
 {
 	glClearColor(0.0, 0.0, 0.0, 1.0);
@@ -688,6 +713,7 @@ bool appLoop()
 	importMesh();
 	importTexture();
 	prepareFBO();
+	//preparePBO();
 
 	bool loop = true;
 	while (loop)
@@ -866,8 +892,9 @@ void plotLine(const ivec2 P1, const ivec2 P2)
 	vector<vec2> locations;
 	vec2 uv = vec2(0);
 
-	glFlush();
-	glFinish();
+	//glFlush();  // Testing if this is not necessary
+	//glFinish(); // Testing if this is not necessary
+
 	long time = SDL_GetTicks();
 	do
 	{
@@ -881,7 +908,7 @@ void plotLine(const ivec2 P1, const ivec2 P2)
 	for (vector<vec2>::const_iterator it = locations.begin(); it != locations.end(); ++it)
 	{
 		setPixelInTexture(it->x*1024, 1024-(it->y*1024));
-		//cout << "put: " << it->x << ", " << it->y << endl;
+		cout << "put: " << it->x << ", " << it->y << endl;
 	}
 	cout << "Time-Put " << locations.size() << ": " << SDL_GetTicks()-time << endl;
 }
@@ -891,12 +918,22 @@ const vec2 getUVFromFBO(const GLuint fboID, const ivec2 loc)
 	//glFlush();
 	//glFinish();
 
-	glBindFramebuffer(GL_FRAMEBUFFER, fboID);
-	vec4 pixel = vec4(0);
-	glReadPixels(loc.x, 512-loc.y, 1, 1, GL_RGBA, GL_FLOAT, &pixel);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	//glBindFramebuffer(GL_FRAMEBUFFER, fboID);
+	//vec4 pixel = vec4(0);
+	//glReadPixels(loc.x, 512-loc.y, 1, 1, GL_RGBA, GL_FLOAT, &pixel);
+	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	return vec2(pixel.s, pixel.t);
+	//return vec2(pixel.s, pixel.t);
+
+	vec4 pixel = vec4(0);
+	//glReadBuffer(fbo_id);
+	glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo_id);
+	glReadPixels(loc.x, 512-loc.y, 1, 1, GL_RGBA, GL_FLOAT, 0);
+	//glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+
+	cout << "Pixel: " << pixel.s << " " << pixel.t << endl;
+
+	return ivec2(pixel.s, pixel.t);
 }
 
 void setPixelInTexture(GLint x, GLint y)
@@ -948,6 +985,8 @@ void setPixelInTexture(GLint x, GLint y)
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 	*/
+
+	cout << "Set: " << x << " " << y << endl;
 }
 
 void render()
